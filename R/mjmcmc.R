@@ -118,6 +118,15 @@ mjmcmc.loop <- function (data, complex, loglik.pi, model.cur, N, probs, params, 
     mcmc_total <- mcmc_total + model.cur$model
     # Add the current model to the list of visited models
     models[[i]] <- model.cur
+
+    # TEMPORARY CODE FOR A LONG RUN EXPERIMENT
+    # Store the results every K iterations
+    K <- 1000
+    if (i %% K == 0) {
+      result <- list(models=models[seq_len(i)], accept=accept, lo.models=lo.models, best.crit=best.crit)
+      save(result, file=paste0(i, "_result.RData"))
+    }
+
   }
   return(list(models=models, accept=accept, lo.models=lo.models, best.crit=best.crit))
 }
