@@ -41,7 +41,10 @@ mjmcmc <- function (data, loglik.pi, N = 100, probs = NULL, params = NULL, sub =
   # Calculate acceptance rate
   result$accept <- result$accept / N
   result$populations <- S
+
+  result$marg.probs <- marginal.probs.renorm(c(result$models, result$lo.models))$probs
   # Return formatted results
+  class(result) <- "mjmcmc"
   return(result)
 }
 

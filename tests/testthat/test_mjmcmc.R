@@ -18,8 +18,8 @@ test_that("Testing MJMCMC algorithm", {
 
   data <- matrix(rnorm(600), 100)
   resm <- mjmcmc(data, loglik.tester)
-  # summary(resm) TODO
-  # plot(resm) TODO
+  summary(resm)
+  plot(resm)
 
   resg <- gmjmcmc(data, loglik.tester, NULL, c("log", "exp"))
   summary(resg)

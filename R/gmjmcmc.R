@@ -107,7 +107,7 @@ gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, P = 10, N.init =
                   accept=accept,                # Acceptance rate per population
                   accept.tot=accept.tot,        # Overall acceptance rate
                   best=max(unlist(best.margs))) # Best marginal model probability throughout the run
-  attr(results, "class") <- "gmjmcmcresult"
+  attr(results, "class") <- "gmjmcmc"
   return(results)
 }
 

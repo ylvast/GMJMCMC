@@ -126,18 +126,27 @@ model.string <- function (model, features, link) {
 #' @param pop The population to print for, defaults to last
 #'
 #' @export
-summary.gmjmcmcresult <- function (results, pop = "last") {
+summary.gmjmcmc <- function (results, pop = "last") {
   if (pop == "last") pop <- length(results$models)
+  summary.mjmcmc(list(best = results$best, models = results$models[[pop]], populations = results$populations[[pop]]))
+}
+
+#' Function to print a quick summary of the results
+#'
+#' @param results The results to use
+#'
+#' @export
+summary.mjmcmc <- function (results) {
   # Get features as strings for printing
-  feats.strings <- sapply(results$populations[[pop]], print.feature, round = 2)
+  feats.strings <- sapply(results$populations, print.feature, round = 2)
   # Get marginal posterior of features
-  marg.probs <- marginal.probs.renorm(results$models[[pop]])$probs
+  marg.probs <- marginal.probs.renorm(results$models)$probs
   # Print the final distribution
   cat("                   Importance | Feature\n")
   print.dist(marg.probs, feats.strings, -1)
   # Print the best marginal likelihood
   cat("\nBest marginal likelihood: ", results$best, "\n")
-  
+
   ord.marg <- order(marg.probs[1,],decreasing = T)
   return(data.frame(feats.strings = feats.strings[ord.marg], marg.probs = marg.probs[1,ord.marg]))
 }
@@ -150,9 +159,26 @@ summary.gmjmcmcresult <- function (results, pop = "last") {
 #' @param pop The population to plot, defaults to last
 #'
 #' @export
-plot.gmjmcmcresult <- function (results, count="all", pop="last") {
-  if (pop=="last") pop <- length(results$populations)
+plot.gmjmcmc <- function (results, count="all", pop="last") {
+  if (pop == "last") pop <- length(results$populations)
+  if (is.null(results$populations)) {
+    pops <- results$features
+    marg.probs <- results$marg.probs
+  } else {
+    pops <- results$populations[[pop]]
+    marg.probs <- results$marg.probs[[pop]]
+  }
+  plot.mjmcmc(list(populations = pops, marg.probs = marg.probs), count)
+}
 
+#' Function to plot the results, works both for results from gmjmcmc and
+#' merged results from merge.results
+#'
+#' @param results The results to use
+#' @param count The number of features to plot, defaults to all
+#'
+#' @export
+plot.mjmcmc <- function (results, count="all") {
   ## Get features as strings for printing and marginal posteriors
   # If this is a merged results the structure is one way
   if (is.null(results$populations)) {
@@ -161,8 +187,8 @@ plot.gmjmcmcresult <- function (results, count="all", pop="last") {
     marg.probs <- results$marg.probs
   } # If this is a result that is not merged, it is another way
   else {
-    feats.strings <- sapply(results$populations[[pop]], print)
-    marg.probs <- results$marg.probs[[pop]]
+    feats.strings <- sapply(results$populations, print)
+    marg.probs <- results$marg.probs
   }
 
   # Plot the distribution

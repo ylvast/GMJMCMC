@@ -95,35 +95,6 @@ loglik.pre <- function (loglik.pi, model, complex, data, params) {
   return(model.res)
 }
 
-#' Summarize results from GMJMCMC
-#'
-#' @param results The results from GMJMCMC
-#' @param populations A list of the populations to include in the summary, defaults to the last one
-#'
-#' @export summary.gmjresult
-summary.gmjresult <- function (results, population = "last") {
-  if (population == "last") pops <- length(results$models)
-  else pops <- population
-  feature_strings <- vector("list", length(results$populations[[pops]]))
-  for (i in seq_along(feature_strings)) {
-    feature_strings[[i]] <- print.feature(results$populations[[pops]][[i]], round = 2)
-  }
-  feature_importance <- marginal.probs.renorm(results$models[[pops]])$probs
-  return(list(features=feature_strings, importance=feature_importance))
-}
-
-#' Function to print all features in a model
-#'
-#' @export
-print.model <- function (model, features) {
-  # Create a list to store the features in
-  model_print <- vector("list", sum(model$model))
-  for (i in seq_along(model$model)) {
-    if (model$model[i]) model_print[[i]] <- print.feature(features[[i]])
-  }
-  return(model_print)
-}
-
 # Function to check the data
 # Checks that there is an intercept in the data, adds it if missing
 # Coerces the data to be of type matrix

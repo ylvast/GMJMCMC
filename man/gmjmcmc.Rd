@@ -10,9 +10,9 @@ gmjmcmc(
   loglik.pi,
   loglik.alpha,
   transforms,
-  P,
-  N.init,
-  N.final,
+  P = 10,
+  N.init = 100,
+  N.final = 100,
   probs = NULL,
   params = NULL,
   sub = FALSE
