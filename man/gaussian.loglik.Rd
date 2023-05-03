@@ -4,7 +4,7 @@
 \alias{gaussian.loglik}
 \title{Log likelihood function for gaussian regression with a prior p(m)=r*sum(total_width).}
 \usage{
-gaussian.loglik(y, x, model, complex, params)
+gaussian.loglik(y, x, model, complex, params = list(r = 1))
 }
 \arguments{
 \item{y}{A vector containing the dependent variable}

@@ -10,12 +10,12 @@ gmjmcmc(
   loglik.pi,
   loglik.alpha,
   transforms,
-  T,
+  P,
   N.init,
   N.final,
-  probs,
-  params,
-  sub = F
+  probs = NULL,
+  params = NULL,
+  sub = FALSE
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ and the rest of the columns should be the independent variables.}
 
 \item{transforms}{A list of the available nonlinear transformations for feature generation}
 
-\item{T}{The number of population iterations}
+\item{P}{The number of population iterations}
 
 \item{N.init}{The number of iterations per population (total iterations = (T-1)*N.init+N.final)}
 

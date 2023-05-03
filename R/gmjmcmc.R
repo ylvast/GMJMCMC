@@ -17,7 +17,7 @@ NULL
 #' @param loglik.pi The (log) density to explore
 #' @param loglik.alpha The likelihood function to use for alpha calculation
 #' @param transforms A list of the available nonlinear transformations for feature generation
-#' @param T The number of population iterations
+#' @param P The number of population iterations
 #' @param N.init The number of iterations per population (total iterations = (T-1)*N.init+N.final)
 #' @param N.final The number of iterations for the final population (total iterations = (T-1)*N.init+N.final)
 #' @param probs A list of the various probability vectors to use
@@ -25,24 +25,29 @@ NULL
 #' @param sub An indicator that if the likelihood is inexact and should be improved each model visit (EXPERIMENTAL!)
 #'
 #' @export gmjmcmc
-gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, T, N.init, N.final, probs, params, sub=F) {
+gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, P = 10, N.init = 100, N.final = 100, probs = NULL, params = NULL, sub = FALSE) {
   # Verify that the data is well-formed
   data <- check.data(data)
+
+  # Generate default probabilities and parameters if there are none supplied.
+  if (is.null(probs)) probs <- gen.probs.gmjmcmc(transforms)
+  if (is.null(params)) params <- gen.params.gmjmcmc(data)
+
   # Extract labels from column names in dataframe
   labels <- get.labels(data)
   # Set the transformations option
   options("gmjmcmc-transformations" = transforms)
   # Acceptance probability per population
-  accept <- vector("list", T)
+  accept <- vector("list", P)
   accept <- lapply(accept, function (x) x <- 0)
   # A list of populations that have been visited
-  S <- vector("list", T)
+  S <- vector("list", P)
   # A list of models that have been visited, refering to the populations
-  models <- vector("list", T)
+  models <- vector("list", P)
   # A list of all the marginal probabilities for the features, per population
-  marg.probs <- vector("list", T)
+  marg.probs <- vector("list", P)
   # A list of all the best marginal model likelihoods, per population
-  best.margs <- vector("list", T)
+  best.margs <- vector("list", P)
 
   # Create first population
   F.0 <- gen.covariates(ncol(data) - 2)
@@ -53,47 +58,47 @@ gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, T, N.init, N.fin
 
   complex <- complex.features(S[[1]])
 
-  ### Main algorithm loop - Iterate over T different populations
-  for (t in seq_len(T)) {
+  ### Main algorithm loop - Iterate over P different populations
+  for (p in seq_len(P)) {
     # Set population iteration count
-    if (t != T) N <- N.init
+    if (p != P) N <- N.init
     else N <- N.final
     # Precalculate covariates and put them in data.t
-    if (t != 1) data.t <- precalc.features(data, S[[t]])
+    if (p != 1) data.t <- precalc.features(data, S[[p]])
     else data.t <- data
     # Initialize first model of population
-    model.cur <- as.logical(rbinom(n = length(S[[t]]), size = 1, prob = 0.5))
+    model.cur <- as.logical(rbinom(n = length(S[[p]]), size = 1, prob = 0.5))
     model.cur.res <- loglik.pre(loglik.pi, model.cur, complex, data.t, params$loglik)
     model.cur <- list(prob = 0, model = model.cur, coefs = model.cur.res$coefs, crit = model.cur.res$crit, alpha = 0)
     best.crit <- model.cur$crit # Reset first best criteria value
 
     # Run MJMCMC over the population
-    cat(paste("Population", t, "begin."))
+    cat(paste("Population", p, "begin."))
     mjmcmc_res <- mjmcmc.loop(data.t, complex, loglik.pi, model.cur, N, probs, params, sub)
-    cat(paste("\nPopulation", t, "done.\n"))
+    cat(paste("\nPopulation", p, "done.\n"))
 
     # Add the models visited in the current population to the model list
-    models[[t]] <- mjmcmc_res$models
+    models[[p]] <- mjmcmc_res$models
     # Calculate marginal likelihoods for current features
-    marg.probs[[t]] <- marginal.probs.renorm(c(mjmcmc_res$models, mjmcmc_res$lo.models))$probs
+    marg.probs[[p]] <- marginal.probs.renorm(c(mjmcmc_res$models, mjmcmc_res$lo.models))$probs
     # Store best marginal model probability for current population
-    best.margs[[t]] <- mjmcmc_res$best.crit
+    best.margs[[p]] <- mjmcmc_res$best.crit
     # Print the marginal posterior distribution of the features after MJMCMC
     cat(paste("\rCurrent best crit:", mjmcmc_res$best.crit, "\n"))
     cat("Feature importance:\n")
-    print.dist(marg.probs[[t]], sapply(S[[t]], print.feature, labels = labels, round = 2), probs$filter)
+    print.dist(marg.probs[[p]], sapply(S[[p]], print.feature, labels = labels, round = 2), probs$filter)
     if (params$rescale.large) prev.large <- params$large
     # Generate a new population of features for the next iteration (if this is not the last)
-    if (t != T) {
-      S[[t + 1]] <- gmjmcmc.transition(S[[t]], F.0, data, loglik.alpha, marg.probs[[1]], marg.probs[[t]], labels, probs, params$feat)
-      complex <- complex.features(S[[t + 1]])
-      if (params$rescale.large) params$large <- lapply(prev.large, function(x) x * length(S[[t + 1]]) / length(S[[t]]))
+    if (p != P) {
+      S[[p + 1]] <- gmjmcmc.transition(S[[p]], F.0, data, loglik.alpha, marg.probs[[1]], marg.probs[[p]], labels, probs, params$feat)
+      complex <- complex.features(S[[p + 1]])
+      if (params$rescale.large) params$large <- lapply(prev.large, function(x) x * length(S[[p + 1]]) / length(S[[p]]))
     }
   }
   # Calculate acceptance rate
-  accept.tot <- sum(unlist(accept)) / (N.init*(T-1)+N.final)
+  accept.tot <- sum(unlist(accept)) / (N.init * (P - 1) + N.final)
   accept <- lapply(accept, function (x) x / N.init)
-  accept[[T]] <- accept[[T]]*N.init/N.final
+  accept[[P]] <- accept[[P]] * N.init / N.final
   # Return formatted results
   results <- list(models=models,                # All models per population
                   populations=S,                # All features per population

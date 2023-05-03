@@ -15,9 +15,14 @@
 #' @param sub An indicator that if the likelihood is inexact and should be improved each model visit (EXPERIMENTAL!)
 #'
 #' @export mjmcmc
-mjmcmc <- function (data, loglik.pi, N, probs, params, sub=F) {
+mjmcmc <- function (data, loglik.pi, N = 100, probs = NULL, params = NULL, sub = FALSE) {
   # Verify that data is well-formed
   data <- check.data(data)
+
+  # Generate default probabilities and parameters if there are none supplied.
+  if (is.null(probs)) probs <- gen.probs.mjmcmc()
+  if (is.null(params)) params <- gen.params.mjmcmc(data)
+
   # Acceptance probability
   accept <- 0
 
