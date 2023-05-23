@@ -44,8 +44,13 @@ gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, P = 10, N.init =
   S <- vector("list", P)
   # A list of models that have been visited, refering to the populations
   models <- vector("list", P)
+  lo.models <- vector("list", P)
   # A list of all the marginal probabilities for the features, per population
   marg.probs <- vector("list", P)
+  # A list of all the marginal probabilities for the models, per population
+  model.probs <- vector("list", P)
+  # A list of all the indices of the models which the marginal probabilities for the models refer to, per population
+  model.probs.idx <- vector("list", P)
   # A list of all the best marginal model likelihoods, per population
   best.margs <- vector("list", P)
 
@@ -79,8 +84,13 @@ gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, P = 10, N.init =
 
     # Add the models visited in the current population to the model list
     models[[p]] <- mjmcmc_res$models
-    # Calculate marginal likelihoods for current features
-    marg.probs[[p]] <- marginal.probs.renorm(c(mjmcmc_res$models, mjmcmc_res$lo.models))$probs
+    lo.models[[p]] <- mjmcmc_res$lo.models
+    # Store marginal likelihoods for current features
+    marg.probs[[p]] <- mjmcmc_res$marg.probs
+    # Store marginal likelihoods for the visited models
+    model.probs[[p]] <- mjmcmc_res$model.probs
+    # Store indices for which the marginal likelihoods for the visited models refer to
+    model.probs.idx[[p]] <- mjmcmc_res$model.probs.idx
     # Store best marginal model probability for current population
     best.margs[[p]] <- mjmcmc_res$best.crit
     # Print the marginal posterior distribution of the features after MJMCMC
@@ -100,13 +110,18 @@ gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, P = 10, N.init =
   accept <- lapply(accept, function (x) x / N.init)
   accept[[P]] <- accept[[P]] * N.init / N.final
   # Return formatted results
-  results <- list(models=models,                # All models per population
-                  populations=S,                # All features per population
-                  marg.probs=marg.probs,        # Marginal feature probabilities per population
-                  best.margs=best.margs,        # Best marginal model probability per population
-                  accept=accept,                # Acceptance rate per population
-                  accept.tot=accept.tot,        # Overall acceptance rate
-                  best=max(unlist(best.margs))) # Best marginal model probability throughout the run
+  results <- list(
+    models = models,                   # All models per population
+    lo.models = lo.models,             # All local optim models per population
+    populations = S,                   # All features per population
+    marg.probs = marg.probs,           # Marginal feature probabilities per population
+    model.probs = model.probs,         # Marginal feature probabilities per population
+    model.probs.idx = model.probs.idx, # Marginal feature probabilities per population
+    best.margs = best.margs,           # Best marginal model probability per population
+    accept = accept,                   # Acceptance rate per population
+    accept.tot = accept.tot,           # Overall acceptance rate
+    best = max(unlist(best.margs))     # Best marginal model probability throughout the run
+  )
   attr(results, "class") <- "gmjmcmc"
   return(results)
 }

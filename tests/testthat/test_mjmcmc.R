@@ -13,26 +13,27 @@ test_that("Testing MJMCMC algorithm", {
     k <- length(lmmod$coefficients)
     rss <- sum(resid(lmmod)^2)
     aic <- n * log(rss / n) + 2 * k
-    return(list(crit = aic))
+    return(list(crit = aic, coefs = lmmod$coefficients))
   }
 
   data <- matrix(rnorm(600), 100)
   resm <- mjmcmc(data, loglik.tester)
   summary(resm)
   plot(resm)
+  predm <- predict(resm, cbind(1, data[, -1, drop = FALSE]))
 
   resg <- gmjmcmc(data, loglik.tester, NULL, c("log", "exp"))
   summary(resg)
   plot(resg)
-  # predict(resg) TODO
+  prediction <- predict(resg, cbind(1, data[, -1, drop = FALSE]))
 
   respm <- mjmcmc.parallel(2, 2, data, loglik.tester)
-  summary(respm)
-  plot(respm)
-  # predict(resg) TODO
+  summary(respm) # TODO
+  plot(respm) # TODO
+  pred_pm <- predict(respm, cbind(1, data[, -1, drop = FALSE]))
 
   respg <- gmjmcmc.parallel(2, 2, data, loglik.tester, NULL, c("log", "exp"))
   # summary(respg) TODO
   # plot(respg) TODO
-  # predict(respg) TOO: First needs to run merge
+  pred_pg <- predict(respg, cbind(1, data[, -1, drop = FALSE]))
 })

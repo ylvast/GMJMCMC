@@ -103,7 +103,7 @@ population.weigths <- function (results, pops.use) {
   }
   max.crits <- unlist(max.crits)
   max.crit <- max(max.crits)
-  return(exp(max.crits-max.crit)/sum(exp(max.crits-max.crit)))
+  return(exp(max.crits-max.crit) / sum(exp(max.crits-max.crit)))
 }
 
 #' Function to generate a function string for a model consisting of features

@@ -46,7 +46,7 @@ marginal.probs <- function (models) {
 #' Function for calculating feature importance through renormalized model estimates
 #' @param models The models to use.
 #' @param type Select which probabilities are of interest, features or models
-marginal.probs.renorm <- function (models, type="features") {
+marginal.probs.renorm <- function (models, type = "features") {
   models <- lapply(models, function (x) x[c("model", "crit")])
   model.size <- length(models[[1]]$model)
   models.matrix <- matrix(unlist(models), ncol = model.size + 1, byrow = TRUE)
@@ -54,14 +54,23 @@ marginal.probs.renorm <- function (models, type="features") {
   models.matrix <- models.matrix[!duplicates, ]
   max_mlik <- max(models.matrix[, (model.size + 1)])
   crit.sum <- sum(exp(models.matrix[, (model.size + 1)] - max_mlik))
-  if (type == "features") {
-    probs <- matrix(NA,1, model.size)
-    for (i in 1:(model.size)) probs[i] <- sum(exp(models.matrix[as.logical(models.matrix[, i]),(model.size + 1)] - max_mlik)) / crit.sum
-  } else if (type == "models") {
-    probs <- matrix(NA,1, nrow(models.matrix))
-    for (i in seq_len(nrow(models.matrix))) probs[i] <- exp(models.matrix[i, ncol(models.matrix)] - max_mlik) / crit.sum
+  if (type == "features" || type == "both") {
+    probs.f <- matrix(NA,1, model.size)
+    for (i in 1:(model.size)) probs.f[i] <- sum(exp(models.matrix[as.logical(models.matrix[, i]),(model.size + 1)] - max_mlik)) / crit.sum
   }
-  return(list(idx = which(!duplicates), probs = probs))
+  if (type == "models" || type == "both") {
+    probs.m <- matrix(NA,1, nrow(models.matrix))
+    for (i in seq_len(nrow(models.matrix))) probs.m[i] <- exp(models.matrix[i, ncol(models.matrix)] - max_mlik) / crit.sum
+  }
+
+  if (type == "features") {
+    result <- list(idx = which(!duplicates), probs = probs.f)
+  } else if (type == "models") {
+    result <- list(idx = which(!duplicates), probs = probs.m)
+  } else {
+    result <- list(idx = which(!duplicates), probs.f = probs.f, probs.m = probs.m)
+  }
+  return(result)
 }
 
 

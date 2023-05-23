@@ -42,7 +42,6 @@ mjmcmc <- function (data, loglik.pi, N = 100, probs = NULL, params = NULL, sub =
   result$accept <- result$accept / N
   result$populations <- S
 
-  result$marg.probs <- marginal.probs.renorm(c(result$models, result$lo.models))$probs
   # Return formatted results
   class(result) <- "mjmcmc"
   return(result)
@@ -127,7 +126,19 @@ mjmcmc.loop <- function (data, complex, loglik.pi, model.cur, N, probs, params, 
     # Add the current model to the list of visited models
     models[[i]] <- model.cur
   }
-  return(list(models=models, accept=accept, lo.models=lo.models, best.crit=best.crit))
+
+  # Calculate and store the marginal inclusion probabilities and the model probabilities
+  marg.probs <- marginal.probs.renorm(c(models, lo.models), type = "both")
+
+  return(list(
+    models = models,
+    accept = accept,
+    lo.models = lo.models,
+    best.crit = best.crit,
+    marg.probs = marg.probs$probs.f,
+    model.probs = marg.probs$probs.m,
+    model.probs.idx = marg.probs$idx
+  ))
 }
 
 #' Subalgorithm for generating a proposal and acceptance probability in (G)MJMCMC

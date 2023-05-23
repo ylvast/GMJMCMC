@@ -6,6 +6,8 @@
 #' @export
 mjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
   results <- mclapply(seq_len(runs), function (x) { mjmcmc(...) }, mc.cores = cores)
+  class(results) <- "mjmcmc_parallel"
+  return(results)
 }
 
 
@@ -17,4 +19,6 @@ mjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
 #' @export
 gmjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
   results <- mclapply(seq_len(runs), function (x) { gmjmcmc(...) }, mc.cores = cores)
+  class(results) <- "gmjmcmc_parallel"
+  return(results)
 }
