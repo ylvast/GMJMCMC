@@ -5,7 +5,7 @@
 #' @return Merged results from multiple mjmcmc runs
 #' @export
 mjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
-  results <- mclapply(seq_len(runs), function (x) { mjmcmc(...) }, mc.cores = cores)
+  results <- mclapply.new(seq_len(runs), function (x) { mjmcmc(...) }, mc.cores = cores)
   class(results) <- "mjmcmc_parallel"
   return(results)
 }
@@ -19,7 +19,7 @@ mjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
 #' @export
 gmjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), merge.options = NULL, data, loglik.pi, loglik.alpha, transforms, ...) {
   options("gmjmcmc-transformations" = transforms)
-  results <- mclapply(seq_len(runs), function (x) {
+  results <- mclapply.new(seq_len(runs), function (x) {
     gmjmcmc(data = data, loglik.pi = loglik.pi, loglik.alpha = loglik.alpha, transforms = transforms, ...)
   }, mc.cores = cores)
   class(results) <- "gmjmcmc_parallel"
