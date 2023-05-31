@@ -100,12 +100,12 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
 #'
 #' @export
 print.feature <- function (feature, dataset = FALSE, alphas = FALSE, labels = FALSE, round = FALSE) {
-  transforms <- getOption("gmjmcmc-transformations")
-  if (is.null(transforms)) stop("Please set the gmjmcmc-transformations option to your non-linear functions (see ?set.transforms).")
   fString <- ""
   feat <- feature[[length(feature)]]
   # This is a more complex feature
   if (is.matrix(feat)) {
+    transforms <- getOption("gmjmcmc-transformations")
+    if (is.null(transforms)) stop("Please set the gmjmcmc-transformations option to your non-linear functions (see ?set.transforms).")
     # Assume that we are not doing multiplication
     op <- "+"
     # Add the outer transform is there is one

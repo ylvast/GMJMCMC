@@ -4,7 +4,16 @@
 \alias{gmjmcmc.parallel}
 \title{Run multiple gmjmcmc runs in parallel returning a list of all results.}
 \usage{
-gmjmcmc.parallel(runs, cores = getOption("mc.cores", 2L), ...)
+gmjmcmc.parallel(
+  runs,
+  cores = getOption("mc.cores", 2L),
+  merge.options = NULL,
+  data,
+  loglik.pi,
+  loglik.alpha,
+  transforms,
+  ...
+)
 }
 \arguments{
 \item{runs}{The number of runs to run}

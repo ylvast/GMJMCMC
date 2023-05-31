@@ -17,8 +17,12 @@ mjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
 #' @param ... Parameters to pass to gmjmcmc
 #' @return Results from multiple gmjmcmc runs
 #' @export
-gmjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), ...) {
-  results <- mclapply(seq_len(runs), function (x) { gmjmcmc(...) }, mc.cores = cores)
+gmjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), merge.options = NULL, data, loglik.pi, loglik.alpha, transforms, ...) {
+  options("gmjmcmc-transformations" = transforms)
+  results <- mclapply(seq_len(runs), function (x) {
+    gmjmcmc(data = data, loglik.pi = loglik.pi, loglik.alpha = loglik.alpha, transforms = transforms, ...)
+  }, mc.cores = cores)
   class(results) <- "gmjmcmc_parallel"
-  return(results)
+  merged <- merge.results(results, merge.options$populations, merge.options$complex.measure, merge.options$tol)
+  return(merged)
 }

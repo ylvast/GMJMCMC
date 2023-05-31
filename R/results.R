@@ -15,15 +15,23 @@
 #' if data is supplied it should be of the same form as is required by gmjmcmc, i.e. with both x, y and an intercept.
 #'
 #' @export merge.results
-merge.results <- function (results, populations="last", complex.measure=1, tol=0, data=NULL) {
+merge.results <- function (results, populations = NULL, complex.measure = NULL, tol = NULL, data = NULL) {
+  # Default values
+  if (is.null(populations))
+    populations <- "last"
+  if (is.null(complex.measure))
+    complex.measure <- 1
+  if (is.null(tol))
+    tol <- 0
+
   res.count <- length(results)
 
   # Select populations to use
   res.lengths <- vector("list")
   for (i in 1:res.count) res.lengths[[i]] <- length(results[[i]]$populations)
-  if (populations=="last") pops.use <- res.lengths
-  else if (populations=="all") pops.use <- lapply(res.lengths, function(x) 1:x)
-  else if (populations=="best") pops.use <- lapply(1:res.count, function(x) which.max(unlist(results[[x]]$best.marg)))
+  if (populations == "last") pops.use <- res.lengths
+  else if (populations == "all") pops.use <- lapply(res.lengths, function(x) 1:x)
+  else if (populations == "best") pops.use <- lapply(1:res.count, function(x) which.max(unlist(results[[x]]$best.marg)))
 
   # Get the population weigths to be able to weight the features
   pop.weights <- population.weigths(results, pops.use)
@@ -89,9 +97,9 @@ merge.results <- function (results, populations="last", complex.measure=1, tol=0
   feats.simplest.ids <- feats.simplest.ids[order(feats.map[4, feats.simplest.ids])]
   counts <- sapply(feats.simplest.ids, function(x) sum(feats.map[1,] == x))
   feats.simplest <- features[feats.simplest.ids]
-  importance <- feats.map[4, feats.simplest.ids]
-  merged <- list(features=feats.simplest, marg.probs=importance, counts=counts, results=results)
-  attr(merged, "class") <- "bgnlm"
+  importance <- feats.map[4, feats.simplest.ids, drop = FALSE]
+  merged <- list(features = feats.simplest, marg.probs = importance, counts = counts, results = results)
+  attr(merged, "class") <- "gmjmcmc_merged"
   return(merged)
 }
 
@@ -131,24 +139,46 @@ summary.gmjmcmc <- function (results, pop = "last") {
   summary.mjmcmc(list(best = results$best, models = results$models[[pop]], populations = results$populations[[pop]]))
 }
 
+#' @export
+summary.gmjmcmc_merged <- function (x) {
+  best <- max(sapply(x$results, function (y) y$best))
+  feats.strings <- sapply(x$features, print)
+  summary_internal(best, feats.strings, x$marg.probs)
+}
+
 #' Function to print a quick summary of the results
 #'
 #' @param results The results to use
 #'
 #' @export
 summary.mjmcmc <- function (results) {
+  return(summary.mjmcmc_parallel(list(results)))
+}
+
+#' Function to print a quick summary of the results
+#'
+#' @param results The results to use
+#'
+#' @export
+summary.mjmcmc_parallel <- function (results) {
   # Get features as strings for printing
-  feats.strings <- sapply(results$populations, print.feature, round = 2)
+  feats.strings <- sapply(results[[1]]$populations, print.feature, round = 2)
   # Get marginal posterior of features
-  marg.probs <- marginal.probs.renorm(results$models)$probs
+  models <- unlist(lapply(results, function (x) x$models), recursive = FALSE)
+  marg.probs <- marginal.probs.renorm(models)$probs
+  best <- max(sapply(results, function (x) x$best))
+  return(summary_internal(best, feats.strings, marg.probs))
+}
+
+summary_internal <- function (best, feats.strings, marg.probs) {
   # Print the final distribution
   cat("                   Importance | Feature\n")
   print.dist(marg.probs, feats.strings, -1)
   # Print the best marginal likelihood
-  cat("\nBest marginal likelihood: ", results$best, "\n")
+  cat("\nBest marginal likelihood: ", best, "\n")
 
-  ord.marg <- order(marg.probs[1,],decreasing = T)
-  return(data.frame(feats.strings = feats.strings[ord.marg], marg.probs = marg.probs[1,ord.marg]))
+  ord.marg <- order(marg.probs[1, ], decreasing = T)
+  return(data.frame(feats.strings = feats.strings[ord.marg], marg.probs = marg.probs[1, ord.marg]))
 }
 
 #' Function to plot the results, works both for results from gmjmcmc and
@@ -178,7 +208,7 @@ plot.gmjmcmc <- function (results, count="all", pop="last") {
 #' @param count The number of features to plot, defaults to all
 #'
 #' @export
-plot.mjmcmc <- function (results, count="all") {
+plot.mjmcmc <- function (results, count = "all") {
   ## Get features as strings for printing and marginal posteriors
   # If this is a merged results the structure is one way
   if (is.null(results$populations)) {
@@ -191,11 +221,50 @@ plot.mjmcmc <- function (results, count="all") {
     marg.probs <- results$marg.probs
   }
 
+  marg.prob.plot(feats.strings, marg.probs, count)
+}
+
+marg.prob.plot <- function (feats.strings, marg.probs, count = "all") {
   # Plot the distribution
   feats.strings <- feats.strings[order(marg.probs)]
   marg.probs <- sort(marg.probs)
   tot <- length(marg.probs)
   if (count=="all") count <- tot
-  y <- barplot(marg.probs[(tot-count+1):tot], horiz=T, xlab="Marginal probability", ylab="Feature")
-  text((max(marg.probs[(tot-count+1):tot])/2), y, feats.strings[(tot-count+1):tot])
+  y <- barplot(marg.probs[(tot - count + 1):tot], horiz = T, xlab = "Marginal probability", ylab = "Feature")
+  text((max(marg.probs[(tot - count + 1):tot]) / 2), y, feats.strings[(tot - count + 1):tot])
+}
+
+#' Plot a mjmcmc_parallel run
+#' @export
+plot.mjmcmc_parallel <- function (x) {
+  merged <- merge.mjmcmc_parallel(x)
+  marg.prob.plot(merged$features, merged$marg.probs)
+}
+
+merge.mjmcmc_parallel <- function (x) {
+  run.weights <- run.weigths(x)
+  marg.probs <- x[[1]]$marg.probs * run.weights[1]
+  for (i in seq_along(x[-1])) {
+    marg.probs <- marg.probs + x[[i]]$marg.probs * run.weights[i]
+  }
+  return(structure(
+    list(
+      features = sapply(x[[1]]$populations, print),
+      marg.probs = marg.probs,
+      results = x
+    ),
+    class = "mjmcmc_merged"
+  ))
+}
+
+run.weigths <- function (results) {
+  best.crits <- sapply(results, function (x) x$best.crit)
+  max.crit <- max(best.crits)
+  return(exp(best.crits - max.crit) / sum(exp(best.crits - max.crit)))
+}
+
+#' Plot a gmjmcmc_merged run
+#' @export
+plot.gmjmcmc_merged <- function (x) {
+  marg.prob.plot(sapply(x$features, print), x$marg.probs)
 }

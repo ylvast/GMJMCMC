@@ -1,7 +1,7 @@
 #' @export
 predict.gmjmcmc <- function (model, x, link = function(x) x, quantiles = c(0.025, 0.5, 0.975)) {
   merged <- merge.results(list(model))
-  return(predict.bgnlm(merged, x, link, quantiles))
+  return(predict.gmjmcmc_merged(merged, x, link, quantiles))
 }
 
 #' New idea for a more streamlined function...
@@ -22,8 +22,8 @@ predict.gmjmcmc.2 <- function (model, x, link = function(x) x, quantiles = c(0.0
 #' @param link The link function to use
 #' @param quantiles The quantiles to calculate credible intervals for the posterior moddes (in model space).
 #'
-#' @export predict.bgnlm
-predict.bgnlm <- function (model, x, link = function(x) x, quantiles = c(0.025, 0.5, 0.975)) {
+#' @export
+predict.gmjmcmc_merged <- function (model, x, link = function(x) x, quantiles = c(0.025, 0.5, 0.975)) {
   x <- as.matrix(x)
   preds <- list()
   for (i in seq_along(model$results)) {

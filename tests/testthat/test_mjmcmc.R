@@ -22,18 +22,18 @@ test_that("Testing MJMCMC algorithm", {
   plot(resm)
   predm <- predict(resm, cbind(1, data[, -1, drop = FALSE]))
 
-  resg <- gmjmcmc(data, loglik.tester, NULL, c("log", "exp"))
+  resg <- gmjmcmc(data, loglik.tester, NULL, c("logi", "exp"))
   summary(resg)
   plot(resg)
   prediction <- predict(resg, cbind(1, data[, -1, drop = FALSE]))
 
   respm <- mjmcmc.parallel(2, 2, data, loglik.tester)
-  summary(respm) # TODO
-  plot(respm) # TODO
+  summary(respm)
+  plot(respm)
   pred_pm <- predict(respm, cbind(1, data[, -1, drop = FALSE]))
 
-  respg <- gmjmcmc.parallel(2, 2, data, loglik.tester, NULL, c("log", "exp"))
-  # summary(respg) TODO
-  # plot(respg) TODO
+  respg <- gmjmcmc.parallel(2, 2, NULL, data, loglik.tester, NULL, c("logi", "exp"))
+  summary(respg)
+  plot(respg)
   pred_pg <- predict(respg, cbind(1, data[, -1, drop = FALSE]))
 })
