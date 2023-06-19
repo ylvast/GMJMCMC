@@ -5,7 +5,7 @@
 
 #' Generate a probability list for MJMCMC
 #'
-#' @export gen.probs.gmjmcmc
+#' @export gen.probs.mjmcmc
 gen.probs.mjmcmc <- function () {
   ## Mode jumping algorithm probabilities
   large <- 0.05                         # probability of a large jump
