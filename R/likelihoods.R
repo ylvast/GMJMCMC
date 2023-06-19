@@ -43,7 +43,11 @@ logistic.loglik.alpha <- function (a, data, mu_func) {
 #' @param params A list of parameters for the log likelihood, supplied by the user
 #'
 #' @export gaussian.loglik
-gaussian.loglik <- function (y, x, model, complex, params = list(r = 1)) {
+gaussian.loglik <- function (y, x, model, complex, params) {
+  
+  if(length(params) == 0)
+    params = list(r = 1/dim(x)[1])
+  
   suppressWarnings({mod <- fastglm(as.matrix(x[, model]), y, family = gaussian())})
   ret <- (-(mod$deviance + 2 * log(length(y)) * (mod$rank - 1) - 2 * log(params$r) * (sum(complex$oc)))) / 2
   return(list(crit=ret, coefs=mod$coefficients))

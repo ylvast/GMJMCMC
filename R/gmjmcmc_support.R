@@ -89,7 +89,7 @@ precalc.features <- function (data, features) {
 
 # TODO: Compare to previous mliks here instead, also add a flag to do that in full likelihood estimation scenarios.
 # Function to call the model function
-loglik.pre <- function (loglik.pi, model, complex, data, params) {
+loglik.pre <- function (loglik.pi, model, complex, data, params = NULL) {
   # Get the complexity measures for just this model
   complex <- list(width = complex$width[model], oc = complex$oc[model], depth = complex$depth[model])
   # Call the model estimator with the data and the model, note that we add the intercept to every model

@@ -177,8 +177,14 @@ summary_internal <- function (best, feats.strings, marg.probs) {
   # Print the best marginal likelihood
   cat("\nBest marginal likelihood: ", best, "\n")
 
-  ord.marg <- order(marg.probs[1, ], decreasing = T)
-  return(data.frame(feats.strings = feats.strings[ord.marg], marg.probs = marg.probs[1, ord.marg]))
+  keep <- which(marg.probs[1, ] > 0.0001)
+  feats.strings <- feats.strings[keep]
+  marg.probs <- marg.probs[1,keep]
+  
+  ord.marg <- order(marg.probs, decreasing = T) 
+  
+  
+  return(data.frame(feats.strings = feats.strings[ord.marg], marg.probs = marg.probs[ord.marg]))
 }
 
 #' Function to plot the results, works both for results from gmjmcmc and
@@ -236,9 +242,9 @@ marg.prob.plot <- function (feats.strings, marg.probs, count = "all") {
 
 #' Plot a mjmcmc_parallel run
 #' @export
-plot.mjmcmc_parallel <- function (x) {
+plot.mjmcmc_parallel <- function (x, count = "all") {
   merged <- merge.mjmcmc_parallel(x)
-  marg.prob.plot(merged$features, merged$marg.probs)
+  marg.prob.plot(merged$features, merged$marg.probs, count)
 }
 
 merge.mjmcmc_parallel <- function (x) {
@@ -265,6 +271,6 @@ run.weigths <- function (results) {
 
 #' Plot a gmjmcmc_merged run
 #' @export
-plot.gmjmcmc_merged <- function (x) {
-  marg.prob.plot(sapply(x$features, print), x$marg.probs)
+plot.gmjmcmc_merged <- function (x, count = "all") {
+  marg.prob.plot(sapply(x$features, print), x$marg.probs, count = count)
 }
