@@ -134,16 +134,16 @@ model.string <- function (model, features, link) {
 #' @param pop The population to print for, defaults to last
 #'
 #' @export
-summary.gmjmcmc <- function (results, pop = "last") {
+summary.gmjmcmc <- function (results, pop = "last", tol = 0.0001) {
   if (pop == "last") pop <- length(results$models)
-  summary.mjmcmc(list(best = results$best, models = results$models[[pop]], populations = results$populations[[pop]]))
+  summary.mjmcmc(list(best = results$best, models = results$models[[pop]], populations = results$populations[[pop]]),tol = tol)
 }
 
 #' @export
-summary.gmjmcmc_merged <- function (x) {
+summary.gmjmcmc_merged <- function (x, tol = 0.0001) {
   best <- max(sapply(x$results, function (y) y$best))
   feats.strings <- sapply(x$features, print)
-  summary_internal(best, feats.strings, x$marg.probs)
+  summary_internal(best, feats.strings, x$marg.probs, tol = tol)
 }
 
 #' Function to print a quick summary of the results
@@ -151,8 +151,8 @@ summary.gmjmcmc_merged <- function (x) {
 #' @param results The results to use
 #'
 #' @export
-summary.mjmcmc <- function (results) {
-  return(summary.mjmcmc_parallel(list(results)))
+summary.mjmcmc <- function (results, tol = 0.0001) {
+  return(summary.mjmcmc_parallel(list(results),tol = tol))
 }
 
 #' Function to print a quick summary of the results
@@ -160,24 +160,25 @@ summary.mjmcmc <- function (results) {
 #' @param results The results to use
 #'
 #' @export
-summary.mjmcmc_parallel <- function (results) {
+summary.mjmcmc_parallel <- function (results , tol = 0.0001) {
   # Get features as strings for printing
   feats.strings <- sapply(results[[1]]$populations, print.feature, round = 2)
   # Get marginal posterior of features
   models <- unlist(lapply(results, function (x) x$models), recursive = FALSE)
   marg.probs <- marginal.probs.renorm(models)$probs
   best <- max(sapply(results, function (x) x$best))
-  return(summary_internal(best, feats.strings, marg.probs))
+  return(summary_internal(best, feats.strings, marg.probs, tol = tol))
 }
 
-summary_internal <- function (best, feats.strings, marg.probs) {
+summary_internal <- function (best, feats.strings, marg.probs, tol = 0.0001) {
   # Print the final distribution
+  keep <- which(marg.probs[1, ] > tol)
   cat("                   Importance | Feature\n")
-  print.dist(marg.probs, feats.strings, -1)
+  print.dist(marg.probs[keep], feats.strings[keep], -1)
   # Print the best marginal likelihood
   cat("\nBest marginal likelihood: ", best, "\n")
-
-  keep <- which(marg.probs[1, ] > 0.0001)
+  
+  
   feats.strings <- feats.strings[keep]
   marg.probs <- marg.probs[1,keep]
   
