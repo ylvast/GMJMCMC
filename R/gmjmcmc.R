@@ -72,7 +72,7 @@ gmjmcmc <- function (data, loglik.pi = gaussian.loglik, loglik.alpha = gaussian.
     if (p != P) N <- N.init
     else N <- N.final
     # Precalculate covariates and put them in data.t
-    if (p != 1) data.t <- precalc.features(data, S[[p]])
+    if (p != 1 || length(params$prel.filter)>0) data.t <- precalc.features(data, S[[p]])
     else data.t <- data
     # Initialize first model of population
     model.cur <- as.logical(rbinom(n = length(S[[p]]), size = 1, prob = 0.5))
