@@ -4,7 +4,7 @@
 \alias{summary.gmjmcmc}
 \title{Function to print a quick summary of the results}
 \usage{
-\method{summary}{gmjmcmc}(results, pop = "last")
+\method{summary}{gmjmcmc}(results, pop = "last", tol = 1e-04)
 }
 \arguments{
 \item{results}{The results to use}

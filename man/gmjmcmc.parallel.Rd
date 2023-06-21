@@ -7,10 +7,10 @@
 gmjmcmc.parallel(
   runs,
   cores = getOption("mc.cores", 2L),
-  merge.options = NULL,
+  merge.options = list(populations = "best", complex.measure = 1, tol = 0),
   data,
-  loglik.pi,
-  loglik.alpha,
+  loglik.pi = gaussian.loglik,
+  loglik.alpha = gaussian.loglik.alpha(),
   transforms,
   ...
 )

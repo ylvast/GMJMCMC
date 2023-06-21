@@ -4,7 +4,7 @@
 \alias{summary.mjmcmc_parallel}
 \title{Function to print a quick summary of the results}
 \usage{
-\method{summary}{mjmcmc_parallel}(results)
+\method{summary}{mjmcmc_parallel}(results, tol = 1e-04)
 }
 \arguments{
 \item{results}{The results to use}
