@@ -28,7 +28,7 @@ NULL
 #' @param sub An indicator that if the likelihood is inexact and should be improved each model visit (EXPERIMENTAL!)
 #'
 #' @export gmjmcmc
-gmjmcmc <- function (data, loglik.pi, loglik.alpha, transforms, P = 10, N.init = 100, N.final = 100, probs = NULL, params = NULL, sub = FALSE) {
+gmjmcmc <- function (data, loglik.pi = gaussian.loglik, loglik.alpha = gaussian.loglik.alpha, transforms, P = 10, N.init = 100, N.final = 100, probs = NULL, params = NULL, sub = FALSE) {
   # Verify that the data is well-formed
   data <- check.data(data)
 
