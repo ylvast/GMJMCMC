@@ -16,8 +16,11 @@ NULL
 #' and the rest of the columns should be the independent variables.
 #' @param loglik.pi The (log) density to explore
 #' @param loglik.alpha The likelihood function to use for alpha calculation
-#' @param transforms A list of the available nonlinear transformations for feature generation
-#' @param P The number of population iterations
+#' @param transforms A Character vector including the names of the non-linear functions to be used by the modification 
+#' and the projection operator. 
+#' @param P The number of generations for GMJMCMC. 
+#' The default value is $P = 10$.
+#' A larger value like $P = 50$ might be more realistic for more complicated examples where one expects a lot of non-linear structures. 
 #' @param N.init The number of iterations per population (total iterations = (T-1)*N.init+N.final)
 #' @param N.final The number of iterations for the final population (total iterations = (T-1)*N.init+N.final)
 #' @param probs A list of the various probability vectors to use

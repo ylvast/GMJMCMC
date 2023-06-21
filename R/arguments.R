@@ -36,7 +36,7 @@ gen.probs.gmjmcmc <- function (transforms) {
   ## Feature generation probabilities
   transcount <- length(transforms)
   filter <- 0.6                             # filtration threshold
-  gen <- rep(1 / 4, 4)                      # probability for different feature generation methods
+  gen <- c(0.30,0.30,0.10,0.30)                # probability for different feature generation methods
   trans <- rep(1 / transcount, transcount)  # probability for each different nonlinear transformation
 
   probs$filter <- filter
@@ -104,7 +104,7 @@ gen.params.gmjmcmc <- function (data) {
   ncov <- ncol(data) - 2
 
   feat_params <- list(D = 5, L = 15,                        # Hard limits on feature complexity
-                      alpha = 0,                            # alpha strategy (0 = None, 1,2,3 = strategies as per Hubin et al.) TODO: Fully Bayesian
+                      alpha = 1,                            # alpha strategy (0 = None, 1,2,3 = strategies as per Hubin et al.) TODO: Fully Bayesian
                       pop.max = as.integer(ncov * 1.5),     # Max features population size
                       keep.org = F,                         # Always keep original covariates in every population
                       prel.filter = 0,                      # Filtration threshold for first population (i.e. filter covariates even if keep.org=T)
