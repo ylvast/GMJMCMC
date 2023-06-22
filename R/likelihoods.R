@@ -102,3 +102,5 @@ linear.g.prior.loglik <- function (y, x, model, complex, params = list(g = 4)) {
   logmarglik <- 0.5 * (log(1 + params$g) * (n - p) - log(1 + params$g * (1 - rsquared)) * (n - 1)) * (p != 1)
   return(logmarglik)
 }
+
+

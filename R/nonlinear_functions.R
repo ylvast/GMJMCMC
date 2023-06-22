@@ -281,3 +281,12 @@ hs <- function(x) as.integer(x>0)
 #'
 #' @export nhs
 nhs <- function(x) as.integer(x<0)
+
+#' not x
+#'
+#' @param x The vector of binary values
+#' @return 1-x
+#'
+#' @export not
+not <- function(x) (1-x)
+
