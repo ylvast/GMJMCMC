@@ -23,6 +23,6 @@ gmjmcmc.parallel <- function (runs, cores = getOption("mc.cores", 2L), merge.opt
     gmjmcmc(data = data, loglik.pi = loglik.pi, loglik.alpha = loglik.alpha, transforms = transforms, ...)
   }, mc.cores = cores)
   class(results) <- "gmjmcmc_parallel"
-  merged <- merge.results(results, merge.options$populations, merge.options$complex.measure, merge.options$tol)
+  merged <- merge.results(results, merge.options$populations, merge.options$complex.measure, merge.options$tol,data = data)
   return(merged)
 }

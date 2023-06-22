@@ -59,10 +59,10 @@ gmjmcmc <- function (data, loglik.pi = gaussian.loglik, loglik.alpha = gaussian.
 
   # Create first population
   F.0 <- gen.covariates(ncol(data) - 2)
-  if (is.null(params$prel.filter))
+  if (is.null(params$feat$prel.filter))
     S[[1]] <- F.0
   else
-    S[[1]] <- F.0[params$prel.filter]
+    S[[1]] <- F.0[params$feat$prel.filter]
 
   complex <- complex.features(S[[1]])
 
@@ -72,8 +72,9 @@ gmjmcmc <- function (data, loglik.pi = gaussian.loglik, loglik.alpha = gaussian.
     if (p != P) N <- N.init
     else N <- N.final
     # Precalculate covariates and put them in data.t
-    if (p != 1 || length(params$prel.filter)>0) data.t <- precalc.features(data, S[[p]])
+    if (length(params$feat$prel.filter)>0 | p!=1) data.t <- precalc.features(data, S[[p]])
     else data.t <- data
+    
     # Initialize first model of population
     model.cur <- as.logical(rbinom(n = length(S[[p]]), size = 1, prob = 0.5))
     model.cur.res <- loglik.pre(loglik.pi, model.cur, complex, data.t, params$loglik)
