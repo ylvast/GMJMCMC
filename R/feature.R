@@ -21,7 +21,7 @@
 #' @param transform A numeric denoting the transform type
 #' @param features A list of features to include
 #' @param alphas A numeric vector denoting the alphas to use
-create.feature <- function (transform, features, alphas=NULL) {
+create.feature <- function (transform, features, trans.priors, alphas=NULL) {
   # Given no alphas, assume no intercept and unit coefficients
   if (is.null(alphas)) alphas <- c(0, rep(1, length(features)))
   if (length(alphas) != (length(features) + 1)) stop("Invalid alpha/feature count")
@@ -33,7 +33,8 @@ create.feature <- function (transform, features, alphas=NULL) {
   }
   else {
     depth <- 0 # Assume 0 depth to find the deepest included feature
-    oc <- length(features) # Every + is an operation, and the outer transform is also one
+    oc <- length(features) - 1 # Every + is an operation, and the outer transform is also one
+    oc <- oc + trans.priors[transform]
     width <- length(features) # Width is the number of features
     for (i in 1:(length(features))) {
       locdepth <- depth.feature(features[[i]])

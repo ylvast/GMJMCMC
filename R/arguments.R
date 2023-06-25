@@ -36,12 +36,14 @@ gen.probs.gmjmcmc <- function (transforms) {
   ## Feature generation probabilities
   transcount <- length(transforms)
   filter <- 0.6                             # filtration threshold
-  gen <- c(0.40,0.40,0.10,0.10)                # probability for different feature generation methods
+  gen <- c(0.40,0.40,0.10,0.10)             # probability for different feature generation methods
   trans <- rep(1 / transcount, transcount)  # probability for each different nonlinear transformation
+  trans_priors <- rep(1, transcount)        # Default values assigned to each transformation to be used as "operation count".
 
   probs$filter <- filter
   probs$gen <- gen
   probs$trans <- trans
+  probs$trans_priors <- trans_priors
 
   return(probs)
 }
