@@ -72,7 +72,7 @@ gmjmcmc <- function (data, loglik.pi = gaussian.loglik, loglik.alpha = gaussian.
     if (p != P) N <- N.init
     else N <- N.final
     # Precalculate covariates and put them in data.t
-    if (length(params$feat$prel.filter)>0 | p!=1) data.t <- precalc.features(data, S[[p]])
+    if (length(params$feat$prel.filter) > 0 | p != 1) data.t <- precalc.features(data, S[[p]])
     else data.t <- data
     
     # Initialize first model of population
