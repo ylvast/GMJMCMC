@@ -101,7 +101,7 @@ gmjmcmc <- function (
     if (p != P) N <- N.init
     else N <- N.final
     # Precalculate covariates and put them in data.t
-    if (length(params$feat$prel.filter) > 0 | p != 1) data.t <- precalc.features(data, S[[p]])
+    if (length(params$feat$prel.filter) > 0 | p != 1) data.t <- precalc.features(data, S[[p]], transforms)
     else data.t <- data
     
     # Initialize first model of population
@@ -135,7 +135,7 @@ gmjmcmc <- function (
     if (params$rescale.large) prev.large <- params$large
     # Generate a new population of features for the next iteration (if this is not the last)
     if (p != P) {
-      S[[p + 1]] <- gmjmcmc.transition(S[[p]], F.0, data, loglik.alpha, marg.probs[[1]], marg.probs[[p]], labels, probs, params$feat, verbose)
+      S[[p + 1]] <- gmjmcmc.transition(S[[p]], F.0, data, loglik.alpha, marg.probs[[1]], marg.probs[[p]], labels, probs, params$feat, transforms, verbose)
       complex <- complex.features(S[[p + 1]])
       if (params$rescale.large) params$large <- lapply(prev.large, function(x) x * length(S[[p + 1]]) / length(S[[p]]))
     }
@@ -180,7 +180,7 @@ gmjmcmc <- function (
 #' 
 #' @noRd
 #' 
-gmjmcmc.transition <- function (S.t, F.0, data, loglik.alpha, marg.probs.F.0, marg.probs, labels, probs, params, verbose = TRUE) {
+gmjmcmc.transition <- function (S.t, F.0, data, loglik.alpha, marg.probs.F.0, marg.probs, labels, probs, params, transforms, verbose = TRUE) {
   # Sample which features to keep based on marginal inclusion below probs$filter
   feats.keep <- as.logical(rbinom(n = length(marg.probs), size = 1, prob = pmin(marg.probs / probs$filter, 1)))
 
@@ -210,8 +210,8 @@ gmjmcmc.transition <- function (S.t, F.0, data, loglik.alpha, marg.probs.F.0, ma
   # Perform the replacements
   for (i in feats.replace) {
     prev.size <- length(S.t)
-    prev.feat.string <- print.feature(S.t[[i]], labels=labels, round = 2)
-    S.t[[i]] <- gen.feature(c(F.0, S.t), marg.probs.use, data, loglik.alpha, probs, length(F.0), params, verbose)
+    prev.feat.string <- print.feature(S.t[[i]], transforms, labels=labels, round = 2)
+    S.t[[i]] <- gen.feature(c(F.0, S.t), marg.probs.use, data, loglik.alpha, probs, length(F.0), params, transforms, verbose)
     if (prev.size > length(S.t)) {
       if (verbose) {
         cat("Removed feature", prev.feat.string, "\n")
@@ -219,7 +219,7 @@ gmjmcmc.transition <- function (S.t, F.0, data, loglik.alpha, marg.probs.F.0, ma
       }
       return(S.t)
     }
-    if (verbose) cat("Replaced feature", prev.feat.string, "with", print.feature(S.t[[i]], labels=labels, round = 2), "\n")
+    if (verbose) cat("Replaced feature", prev.feat.string, "with", print.feature(S.t[[i]], transforms, labels=labels, round = 2), "\n")
     feats.keep[i] <- T
     marg.probs.use[i] <- mean(marg.probs.use)
   }
@@ -228,12 +228,12 @@ gmjmcmc.transition <- function (S.t, F.0, data, loglik.alpha, marg.probs.F.0, ma
   if (length(S.t) < params$pop.max) {
     for (i in (length(S.t)+1):params$pop.max) {
       prev.size <- length(S.t)
-      S.t[[i]] <- gen.feature(c(F.0, S.t), marg.probs.use, data, loglik.alpha, probs, length(F.0), params, verbose)
+      S.t[[i]] <- gen.feature(c(F.0, S.t), marg.probs.use, data, loglik.alpha, probs, length(F.0), params, transforms, verbose)
       if (prev.size == length(S.t)) {
         if (verbose) cat("Population not growing, returning.\n")
         return(S.t)
       }
-      if (verbose) cat("Added feature", print.feature(S.t[[i]], labels=labels, round = 2), "\n")
+      if (verbose) cat("Added feature", print.feature(S.t[[i]], transforms, labels=labels, round = 2), "\n")
       marg.probs.use <- c(marg.probs.use, params$eps)
     }
   }

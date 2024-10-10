@@ -9,12 +9,8 @@
 # alpha is the coefficient before each feature listed in f,
 # and also possibly one more for an intercept
 
-# A feature matrix has the structure
-# | TRANSFORM   WIDTH ALPHA0 |
-# | DEPTH       FEAT1 ALPHA1 |
-# | NA          FEAT2 ALPHA2 |
-# | NA          FEAT3 ALPHA3 |
-# ...
+# A feature list has the structure
+# list(eq, depth, width, oc, alphas)
 
 #' Create method for "feature" class
 #'
@@ -23,39 +19,18 @@
 #' @param trans.priors A vector of prior inclusion penalties for the different transformations.
 #' @param alphas A numeric vector denoting the alphas to use
 #' @noRd
-create.feature <- function (transform, features, trans.priors, alphas=NULL) {
+create.feature <- function (equation, features, transforms, trans_priors, alphas=NULL) {
   # Given no alphas, assume no intercept and unit coefficients
   if (is.null(alphas)) alphas <- c(0, rep(1, length(features)))
   if (length(alphas) != (length(features) + 1)) stop("Invalid alpha/feature count")
   # Calculate the depth, operation count and width of the new feature
-  if (transform == 0) {
-    depth <- 1 + depth.feature(features[[1]]) + depth.feature(features[[2]])
-    oc <- 1 + oc.feature(features[[1]]) + oc.feature(features[[2]])
-    width <- 2 + width.feature(features[[1]]) + width.feature(features[[2]])
-  }
-  else {
-    depth <- 0 # Assume 0 depth to find the deepest included feature
-    oc <- length(features) - 1 # Every + is an operation, and the outer transform is also one
-    oc <- oc + trans.priors[transform]
-    width <- length(features) # Width is the number of features
-    for (i in 1:(length(features))) {
-      locdepth <- depth.feature(features[[i]])
-      lococ <- oc.feature(features[[i]])
-      locwidth <- width.feature(features[[i]])
-      width <- width + locwidth
-      oc <- oc + lococ
-      if (locdepth > depth) depth <- locdepth
-    }
-    depth <- depth + 1 # Add 1 to depth to account for the outer transformation
-  }
-
-  # Generate the new feature matrix
-  newFeature <- list(matrix(c(transform, depth, rep(NA,length(alphas)-2),
-                      width, 1:(length(features)), alphas), length(alphas)))
-  attr(newFeature[[1]], "oc") <- oc
-  feature <- append(newFeature, features, 0)
-  class(feature) <- "feature"
-  return(feature)
+  depth <- calculate_depth(equation,transforms)
+  oc <- calculate_oc(equation,transforms,trans_priors)
+  width <- calculate_width(equation,transforms)
+  # Generate the new feature list
+  new_feature <- list(eq=equation, depth=depth, width=width, oc=oc, alphas=alphas)
+  class(new_feature) <- "feature"
+  return(new_feature)
 }
 
 #' Update alphas on a feature
@@ -68,7 +43,8 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
   feat <- feature[[length(feature)]]
   alpha <- 0
   # This is a more complex feature
-  if (is.matrix(feat)) {
+  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  if (is.list(feature) && all(required_fields %in% names(feature))) {
     # Adjust intercept if it is not multiplication
     if (feat[1,1] > 0 && nrow(feat) > 2) {
       alpha <- alpha + 1
@@ -94,92 +70,30 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
 }
 
 #' Print method for "feature" class
-#'
-#' @param x An object of class "feature"
-#' @param dataset Set the regular covariates as columns in a dataset
-#' @param alphas Print a "?" instead of actual alphas to prepare the output for alpha estimation
-#' @param labels Should the covariates be named, or just referred to as their place in the data.frame.
-#' @param round Should numbers be rounded when printing? Default is FALSE, otherwise it can be set to the number of decimal places.
-#' @param ... Not used.
-#' 
-#' @return String representation of a feature
-#' 
-#' @examples
-#' result <- gmjmcmc(matrix(rnorm(600), 100), P = 2, gaussian.loglik, NULL, c("p0", "exp_dbl"))
-#' print(result$populations[[1]][1])
-#' 
-#' @export
-print.feature <- function (x, dataset = FALSE, alphas = FALSE, labels = FALSE, round = FALSE, ...) {
-  fString <- ""
-  feat <- x[[length(x)]]
-  # This is a more complex feature
-  if (is.matrix(feat)) {
-    transforms <- getOption("gmjmcmc-transformations")
-    if (is.null(transforms)) stop("Please set the gmjmcmc-transformations option to your non-linear functions (see ?set.transforms).")
-    # Assume that we are not doing multiplication
-    op <- "+"
-    # Add the outer transform is there is one
-    if (feat[1, 1] > 0) fString <- paste0(fString, transforms[[feat[1, 1]]], "(")
-    # If g = 0, we are doing multiplication
-    else {
-      op <- "*"
-      fString <- paste0(fString, "(")
-    }
-    # If we are printing rounded features for neat output, round all alphas
-    if (round) {
-      feat[, 3] <- round(feat[, 3], round)
-    }
-    for (j in seq_len(nrow(feat))) {
-      # No plus or multiplication sign on the last one
-      if (j == nrow(feat)) op <- ""
-      # If this is an intercept just add it in
-      if (j == 1 && feat[j, 3] != 0) {
-        if (!alphas) fString <- paste0(fString, feat[j, 3], op)
-        else fString <- paste0(fString, "?", op)
-      }
-      # Otherwise this is a feature or covariate, do a recursive conversion
-      if (j != 1) {
-        # Process alphas, which are only present if there is more than one term in the feature
-        # this implies that the feature is not a multiplication (i.e. only one _term_).
-        if ((nrow(feat) > 2 || feat[1, 3] != 0) && feat[1, 1] > 0) {
-          if (alphas) fString <- paste0(fString, "?*")
-          else fString <- paste0(fString, feat[j,3], "*")
-        }
-        fString <- paste0(fString, print.feature(x[[feat[j, 2]]], dataset, alphas, labels, round), op)
-      }
-    }
-    fString <- paste0(fString, ")")
-  }
-  # This is a plain covariate
-  else if (is.numeric(feat)) {
-    if (dataset) fString <- paste0("data[,", feat + 2, "]")
-    else if (labels[1] != F) fString <- labels[feat]
-    else fString <- paste0("x", feat)
-  } else stop("Invalid feature structure")
-  return(fString)
+print.feature <- function(feature, transforms, labels=FALSE, round=FALSE){
+  equation <- feature$eq
+  string <- convert_to_string(equation, transforms, labels, round)
+  return(string)
 }
 
 # A function to get the depth of a feature
 depth.feature <- function (feature) {
-  feat <- feature[[length(feature)]]
-  if (is.matrix(feat)) return(feat[2,1])
-  else if (is.numeric(feat)) return(0)
+  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  if (is.list(feature) && all(required_fields %in% names(feature))) return(feature$depth)
   else stop("Invalid feature structure")
 }
 
 # A function to get the width of a feature
 width.feature <- function (feature) {
-  feat <- feature[[length(feature)]]
-  if (is.matrix(feat)) return(feat[1,2])
-  else if (is.numeric(feat)) return(1)
+  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  if (is.list(feature) && all(required_fields %in% names(feature))) return(feature$width)
   else stop("Invalid feature structure")
 }
 
 # A function to get the oc (operation count) of a feature
 oc.feature <- function (feature) {
-  feat <- feature[[length(feature)]]
-  if (is.matrix(feat)) return(attr(feat, "oc"))
-  else if (is.numeric(feat)) return(0)
+  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  if (is.list(feature) && all(required_fields %in% names(feature)))  return(feature$oc)
   else stop("Invalid feature structure")
 }
 
