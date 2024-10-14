@@ -1,16 +1,30 @@
 # Helper function for drop and switching feature
 drop_switch_feature <- function(lst, count, target, replacement = NULL) {
+  if (!(is.list(lst[[1]])) && (lst[[1]] == target) && is.null(replacement)){
+    count <- count - 1
+    if (count == 0) { # Count is to differentiate on equal operations, two sums etc. 
+      if (target %in% c("Sum","Prod")){ # If Sum or Prod, remove one addend/factor
+        which_keep <- sample.int(2,1)
+        lst <- lst[[2]][[which_keep]]
+      } else { # If a function, remove the modification and keep what is inside
+        lst <- lst[[2]]
+      }
+      return(lst)
+    }
+  } 
   for (i in seq_along(lst)) {
     if (is.list(lst[[i]])) {
       # If the first element matches `switch`, replace the entire sublist
       if (!(is.list(lst[[i]][[1]])) && (lst[[i]][[1]] == target)) {
         count <- count - 1
         if (count == 0) {
-          # If no replacement, drop
           if (is.null(replacement)) {
-            # Drop random addend/factor
-            which_keep <- sample.int(2,1)
-            lst[[i]] <- lst[[i]][[2]][[which_keep]]
+            if (target %in% c("Sum","Prod")){ # If Sum or Prod, remove one addend/factor
+              which_keep <- sample.int(2,1)
+              lst[[i]] <- lst[[i]][[2]][[which_keep]]
+            } else { # If a function, remove the modification and keep what is inside
+              lst[[i]] <- lst[[i]][[2]]
+            }
           } else {
             lst[[i]] <- replacement
           }
@@ -20,7 +34,7 @@ drop_switch_feature <- function(lst, count, target, replacement = NULL) {
       lst[[i]] <- drop_switch_feature(lst[[i]], count, target, replacement)
     }
   }
-  return(lst)  # Return the modified list
+  return(lst)  # Return the modified equation
 }
 
 # Helper function when making a projection, to sum over multiple features
