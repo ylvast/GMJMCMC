@@ -73,6 +73,7 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
 print.feature <- function(feature, labels=FALSE, round=FALSE){
   equation <- feature$eq
   transforms <- feature$transforms
+  print(transforms)
   string <- convert_to_string(equation, transforms, labels, round)
   return(string)
 }
