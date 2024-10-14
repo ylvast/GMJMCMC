@@ -92,13 +92,13 @@ marginal.probs.renorm <- function (models, type = "features") {
 
 
 # Function for precalculating features for a new feature population
-precalc.features <- function (data, features, transforms) {
+precalc.features <- function (data, features) {
   precalc <- matrix(NA, nrow(data), length(features) + 2)
   precalc[, 1:2] <- data[, 1:2]
   X <- data[, 3:ncol(data)]
   colnames(X) <- paste0("x", 1:ncol(X))
   for (f in seq_along(features)) {
-    feature_string <- print.feature(features[[f]], transforms)
+    feature_string <- print.feature(features[[f]])
     precalc[, (f + 2)] <- with(X, eval(parse(text = feature_string)))
   }
   # Replace any -Inf and Inf values caused by under- or overflow

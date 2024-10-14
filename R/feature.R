@@ -19,7 +19,7 @@
 #' @param trans.priors A vector of prior inclusion penalties for the different transformations.
 #' @param alphas A numeric vector denoting the alphas to use
 #' @noRd
-create.feature <- function (equation, features, transforms, trans_priors, alphas=NULL) {
+create.feature <- function (equation, transforms, trans_priors, alphas=NULL) {
   # Given no alphas, assume no intercept and unit coefficients
   if (is.null(alphas)) alphas <- c(0, rep(1, length(features)))
   if (length(alphas) != (length(features) + 1)) stop("Invalid alpha/feature count")
@@ -28,7 +28,7 @@ create.feature <- function (equation, features, transforms, trans_priors, alphas
   oc <- calculate_oc(equation,transforms,trans_priors)
   width <- calculate_width(equation,transforms)
   # Generate the new feature list
-  new_feature <- list(eq=equation, depth=depth, width=width, oc=oc, alphas=alphas)
+  new_feature <- list(eq=equation, depth=depth, width=width, oc=oc, alphas=alphas, transforms=transforms)
   class(new_feature) <- "feature"
   return(new_feature)
 }
@@ -70,29 +70,30 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
 }
 
 #' Print method for "feature" class
-print.feature <- function(feature, transforms, labels=FALSE, round=FALSE){
+print.feature <- function(feature, labels=FALSE, round=FALSE){
   equation <- feature$eq
+  transforms <- feature$transforms
   string <- convert_to_string(equation, transforms, labels, round)
   return(string)
 }
 
 # A function to get the depth of a feature
 depth.feature <- function (feature) {
-  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  required_fields <- c("eq", "depth", "width", "oc", "alphas", "transforms")
   if (is.list(feature) && all(required_fields %in% names(feature))) return(feature$depth)
   else stop("Invalid feature structure")
 }
 
 # A function to get the width of a feature
 width.feature <- function (feature) {
-  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  required_fields <- c("eq", "depth", "width", "oc", "alphas", "transforms")
   if (is.list(feature) && all(required_fields %in% names(feature))) return(feature$width)
   else stop("Invalid feature structure")
 }
 
 # A function to get the oc (operation count) of a feature
 oc.feature <- function (feature) {
-  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  required_fields <- c("eq", "depth", "width", "oc", "alphas", "transforms")
   if (is.list(feature) && all(required_fields %in% names(feature)))  return(feature$oc)
   else stop("Invalid feature structure")
 }
