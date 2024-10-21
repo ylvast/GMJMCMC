@@ -99,7 +99,7 @@ precalc.features <- function (data, features) {
   colnames(X) <- paste0("x", 1:ncol(X))
   for (f in seq_along(features)) {
     feature_string <- print.feature(features[[f]])
-    precalc[, (f + 2)] <- with(X, eval(parse(text = feature_string)))
+    precalc[, (f + 2)] <- eval(parse(text = feature_string), envir = as.data.frame(X))
   }
   # Replace any -Inf and Inf values caused by under- or overflow
   precalc <- replace.infinite.data.frame(precalc)

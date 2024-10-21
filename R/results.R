@@ -270,7 +270,7 @@ summary.gmjmcmc <- function (object, pop = "best", tol = 0.0001, labels = FALSE,
   
   if (pop == "last") pop <- length(object$models)
   else if (pop == "best") pop <- which.max(unlist(object$best.margs))
-  feats.strings <- sapply(object$populations[[pop]], FUN = function(x) print.feature(x = x, labels = labels, round = 2))
+  feats.strings <- sapply(object$populations[[pop]], FUN = function(x) print.feature(feature = x, labels = labels, round = 2))
   
   if (!is.null(effects) & !is.null(labels)) {
     effects <- compute_effects(object, labels = labels, quantiles = effects)
@@ -324,7 +324,7 @@ summary.gmjmcmc_merged <- function (object, tol = 0.0001, labels = FALSE, effect
   }
   
   best <- max(sapply(object$results, function (y) y$best))
-  feats.strings <- sapply(object$features, FUN = function(x) print.feature(x = x, labels = labels, round = 2))
+  feats.strings <- sapply(object$features, FUN = function(x) print.feature(feature = x, labels = labels, round = 2))
   
   
   if (!is.null(effects) & !is.null(labels)) {

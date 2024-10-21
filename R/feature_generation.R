@@ -8,7 +8,8 @@ gen.multiplication <- function (features, marg.probs, trans.priors) {
   # Sample two features to be multiplied
   feats <- sample.int(n = length(features), size = 2, prob = marg.probs+0.00001, replace = TRUE)
   new_feature <- list("Prod",list(features[[feats[1]]]$eq,features[[feats[2]]]$eq))
-  return(create.feature(new_feature, features[feats]$transforms, trans.priors))
+  transforms <- features[[1]]$transforms
+  return(create.feature(new_feature, transforms, trans.priors))
 }
 
 # Generate a modification feature
@@ -21,6 +22,7 @@ gen.modification <- function (features, marg.probs, trans.probs, trans.priors) {
 
 # Generate a projection feature
 gen.projection <- function (features, marg.probs, trans.probs, max.width, max.size, trans.priors) {
+  transforms <- features[[1]]$transforms
   if (!is.null(max.size)) {
     max.width <- min(max.width, max.size + 1)
   }
@@ -38,10 +40,10 @@ gen.projection <- function (features, marg.probs, trans.probs, max.width, max.si
   }
   
   # Add the first alpha
-  sum <- list("Sum",list(list(alphas[1]),sum_equations(equations)))
+  sum_of_equations <- list("Sum",list(list(alphas[1]),sum_equations(equations)))
   # Transform the sum 
-  new_feature <- list(transforms[trans],sum)
-  return(create.feature(new_feature, features[1]$transforms, trans.priors, alphas))
+  new_feature <- list(transforms[trans],sum_of_equations)
+  return(create.feature(new_feature, transforms, trans.priors))
 }
 
 # Generate new features from the initial covariates
@@ -54,7 +56,7 @@ gen.new <- function (features, F.0.size) {
 gen.drop <- function (features, marg.probs, trans.priors) {
   feat <- sample.int(n = length(features), size = 1, prob = marg.probs+0.00001)
   # If no sum or prod in the expression, nothing to remove
-  if (features[feat]$oc==0){
+  if (features[[feat]]$oc==0){
     return(NULL)
   }
   # Only drop parts of sums or products
@@ -83,7 +85,7 @@ gen.switch <- function (features, marg.probs, trans.priors) {
   count <- sum(flat_elements[1:switch_index]==switch_out) # Make sure to switch out the correct feature 
   updated_part <- drop_switch_feature(features[[feats[1]]]$eq[-1],count,switch_out,features[[feats[2]]]$eq)
   new_feature <- c(features[[feats[1]]]$eq[1],updated_part)
-  return(create.feature(new_feature, features[1]$transforms, trans.priors))
+  return(create.feature(new_feature, features[[1]]$transforms, trans.priors))
 }
 
 # Select a feature to generate and generate it
@@ -93,18 +95,18 @@ gen.feature <- function (features, marg.probs, data, loglik.alpha, probs, F.0.si
   while (!feat.ok && tries < 50) {
     feat.type <- sample.int(n = 6, size = 1, prob = probs$gen)
     if (feat.type == 1) feat <- gen.multiplication(features, marg.probs, probs$trans_priors)
-    if (feat.type == 2) feat <- gen.modification(features, marg.probs, probs$trans, probs$trans_priors, probs$trans_priors)
+    if (feat.type == 2) feat <- gen.modification(features, marg.probs, probs$trans, probs$trans_priors)
     if (feat.type == 3) feat <- gen.projection(features, marg.probs, probs$trans, params$L, params$max.proj.size, probs$trans_priors)
     if (feat.type == 4) feat <- gen.new(features, F.0.size)
-    if (feat.type == 5) feat <- gen.removal(features, marg.probs, probs$trans_priors)
+    if (feat.type == 5) feat <- gen.drop(features, marg.probs, probs$trans_priors)
     if (feat.type == 6) feat <- gen.switch(features,marg.probs, probs$trans_priors)
     # Check that the feature is not too wide or deep
-    if (!(feat$depth > params$D || feat$width > params$L)) {
-      # Generate alphas using the strategy chosen
-      if (params$alpha > 0) {
-        feat <- gen.alphas(params$alpha, feat, data, loglik.alpha, verbose)
-      }
-      if (!is.null(feat)) {
+    if (!is.null(feat)){
+      if (!(depth.feature(feat) > params$D || width.feature(feat) > params$L)) {
+        # Generate alphas using the strategy chosen
+        if (params$alpha > 0) {
+          feat <- gen.alphas(params$alpha, feat, data, loglik.alpha, verbose)
+        }
         # Check for linear dependence of new the feature
         if (length(features) == F.0.size) feats <- list()
         else feats <- features[(F.0.size + 1):length(features)]

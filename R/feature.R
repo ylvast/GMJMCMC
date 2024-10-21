@@ -21,8 +21,7 @@
 #' @noRd
 create.feature <- function (equation, transforms, trans_priors, alphas=NULL) {
   # Given no alphas, assume no intercept and unit coefficients
-  if (is.null(alphas)) alphas <- c(0, rep(1, length(features)))
-  if (length(alphas) != (length(features) + 1)) stop("Invalid alpha/feature count")
+  if (is.null(alphas)) alphas <- c(0, 1)
   # Calculate the depth, operation count and width of the new feature
   depth <- calculate_depth(equation,transforms)
   oc <- calculate_oc(equation,transforms,trans_priors)
@@ -43,7 +42,7 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
   feat <- feature[[length(feature)]]
   alpha <- 0
   # This is a more complex feature
-  required_fields <- c("eq", "depth", "width", "oc", "alphas")
+  required_fields <- c("eq", "depth", "width", "oc", "alphas", "transforms")
   if (is.list(feature) && all(required_fields %in% names(feature))) {
     # Adjust intercept if it is not multiplication
     if (feat[1,1] > 0 && nrow(feat) > 2) {
@@ -73,7 +72,6 @@ update.alphas <- function (feature, alphas, recurse=FALSE) {
 print.feature <- function(feature, labels=FALSE, round=FALSE){
   equation <- feature$eq
   transforms <- feature$transforms
-  print(transforms)
   string <- convert_to_string(equation, transforms, labels, round)
   return(string)
 }
