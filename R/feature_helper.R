@@ -1,4 +1,10 @@
-# Helper function for drop and switching feature
+#' Helper function for drop and switching feature
+#'
+#' @param lst The equation that should be changed
+#' @param count What number element should be switched out, if it is more of the same
+#' @param target The element that should be switched out
+#' @param replacement What to switch in, not used if the transformation is elimination/drop
+#' @return The updated equation
 drop_switch_feature <- function(lst, count, target, replacement = NULL) {
   if (!(is.list(lst[[1]])) && (lst[[1]] == target) && is.null(replacement)){
     count <- count - 1
@@ -72,6 +78,11 @@ convert_to_string <- function(expression, transforms, labels = FALSE, round = FA
     depth <- depth+1
     factor1 <- convert_to_string(expression[[2]][[1]],transforms,labels,round,depth,parenthesize=TRUE)
     factor2 <- convert_to_string(expression[[2]][[2]],transforms,labels,round,depth,parenthesize=TRUE)
+    if (factor1 == "1"){
+      return(factor2)
+    } else if (factor2 == "1"){
+      return(factor1)
+    }
     if (depth==1){
       return(paste(factor1,"*",factor2,sep=""))
     }

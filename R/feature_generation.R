@@ -9,6 +9,7 @@ gen.multiplication <- function (features, marg.probs, trans.priors) {
   feats <- sample.int(n = length(features), size = 2, prob = marg.probs+0.00001, replace = TRUE)
   new_feature <- list("Prod",list(features[[feats[1]]]$eq,features[[feats[2]]]$eq))
   transforms <- features[[1]]$transforms
+  print("mult")
   return(create.feature(new_feature, transforms, trans.priors))
 }
 
@@ -17,6 +18,7 @@ gen.modification <- function (features, marg.probs, trans.probs, trans.priors) {
   feat <- sample.int(n = length(features), size = 1, prob = marg.probs+0.00001)
   trans <- sample.int(n = length(trans.probs), size = 1, prob = trans.probs)
   new_feature <- list(features[[feat]]$transforms[trans],features[[feat]]$eq)
+  print("mod")
   return(create.feature(new_feature, features[[feat]]$transforms, trans.priors))
 }
 
@@ -43,12 +45,14 @@ gen.projection <- function (features, marg.probs, trans.probs, max.width, max.si
   sum_of_equations <- list("Sum",list(list(alphas[1]),sum_equations(equations)))
   # Transform the sum 
   new_feature <- list(transforms[trans],sum_of_equations)
+  print("sproj")
   return(create.feature(new_feature, transforms, trans.priors))
 }
 
 # Generate new features from the initial covariates
 gen.new <- function (features, F.0.size) {
   covariate <- sample.int(n = F.0.size, size = 1)
+  print("new")
   return(features[[covariate]])
 }
 
@@ -68,6 +72,7 @@ gen.drop <- function (features, marg.probs, trans.priors) {
   count <- sum(filtered_elements[1:remove_index]==remove_out)
   # Create new feature equation
   new_feature <- drop_switch_feature(features[[feat]]$eq,count,remove_out)
+  print("drop")
   return(create.feature(new_feature, features[[feat]]$transforms, trans.priors))
 }
 
@@ -85,6 +90,7 @@ gen.switch <- function (features, marg.probs, trans.priors) {
   count <- sum(flat_elements[1:switch_index]==switch_out) # Make sure to switch out the correct feature 
   updated_part <- drop_switch_feature(features[[feats[1]]]$eq[-1],count,switch_out,features[[feats[2]]]$eq)
   new_feature <- c(features[[feats[1]]]$eq[1],updated_part)
+  print("switch")
   return(create.feature(new_feature, features[[1]]$transforms, trans.priors))
 }
 

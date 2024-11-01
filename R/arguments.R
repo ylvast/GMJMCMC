@@ -48,7 +48,7 @@ gen.probs.gmjmcmc <- function (transforms) {
   ## Feature generation probabilities
   transcount <- length(transforms)
   filter <- 0.6                             # filtration threshold
-  gen <- c(0.30,0.30,0.08,0.08,0.12,0.12)             # probability for different feature generation method
+  gen <- c(0.22,0.22,0.06,0.06,0.22,0.22)   # probability for different feature generation method
                                             # (interactions, modifications, projections , mutations, removal, switch)
   trans <- rep(1 / transcount, transcount)  # probability for each different nonlinear transformation
   trans_priors <- rep(1, transcount)        # Default values assigned to each transformation to be used as "operation count".
@@ -89,7 +89,7 @@ gen.params.mjmcmc <- function (data) {
   greedy_kern <- list(probs=c(0.1, 0.05, 0.2, 0.3, 0.2, 0.15),
                       neigh.size=1, neigh.min=1, neigh.max=2)           # Greedy algorithm proposal kernel parameters
   greedy_params <- list(steps=20, tries=3, kern=greedy_kern)            # Greedy algorithm parameters (60 models default)
-
+  
   ## MJMCMC parameters
   burn_in <- 100                                                        # TODO
 
@@ -125,7 +125,7 @@ gen.params.gmjmcmc <- function (data) {
 
   ncov <- ncol(data) - 2
 
-  feat_params <- list(D = 5, L = 15,                                # Hard limits on feature complexity
+  feat_params <- list(D = 5, L = 5,                                 # Hard limits on feature complexity
                       alpha = 0,                                    # alpha strategy (0 = None, 1,2,3 = strategies as per Hubin et al.) TODO: Fully Bayesian
                       pop.max = min(100,as.integer(ncov * 1.5)),    # Max features population size
                       keep.org = FALSE,                             # Always keep original covariates in every population
