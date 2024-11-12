@@ -21,7 +21,7 @@
 #' @noRd
 create.feature <- function (equation, transforms, trans_priors, alphas=NULL) {
   # Given no alphas, assume no intercept and unit coefficients
-  if (is.null(alphas)) alphas <- c(0, 1)
+  if (is.null(alphas)) alphas <- 1
   # Calculate the depth, operation count and width of the new feature
   depth <- calculate_depth(equation,transforms)
   oc <- calculate_oc(equation,transforms,trans_priors)

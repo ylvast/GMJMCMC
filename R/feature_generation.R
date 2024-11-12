@@ -143,12 +143,12 @@ check.collinearity <- function (proposal, features, F.0.size, data, mock) {
   else return(TRUE)
 }
 
-# Generate features to represent the covariates, just takes the count needed
+# Generate features to represent the covariates
 gen.covariates <- function (count, transforms) {
   covariates <- vector("list", length = count)
   for (i in c(1:count)){
     equation <- list(paste("x",i,sep=""))
-    covariates[[i]] <- list(eq=equation, depth=0, width=1, oc=0, alphas=NULL, transforms=transforms)
+    covariates[[i]] <- list(eq=equation, depth=0, width=1, oc=0, alphas=1, transforms=transforms)
     class(covariates[[i]]) <- "feature"
   }
   return(covariates)

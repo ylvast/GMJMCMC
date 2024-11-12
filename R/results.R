@@ -257,7 +257,7 @@ summary.gmjmcmc <- function (object, pop = "best", tol = 0.0001, labels = FALSE,
     merged <- merge_results(results, pop, 2, 0.0000001, data = NULL)
     
     best <- max(sapply(merged$results, function (y) y$best))
-    feats.strings <- sapply(merged$features, FUN = function(x) print.feature(x = x, labels = labels, round = 2))
+    feats.strings <- sapply(merged$features, FUN = function(x) print.feature(feature = x, labels = labels, round = 2))
     
     if (!is.null(effects) & !is.null(labels)) {
       effects <- compute_effects(merged,labels = labels, quantiles = effects)
