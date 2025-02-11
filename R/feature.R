@@ -3,22 +3,17 @@
 # Created by: jonlachmann
 # Created on: 2021-02-10
 
-# transform = 0 is a multiplication of the (two) features listed in f
-# transform > 0 is a transform of the type denoted by the transform variable
-# f is a list of features involved in the feature
-# alpha is the coefficient before each feature listed in f,
-# and also possibly one more for an intercept
-
 # A feature list has the structure
-# list(eq, depth, width, oc, alphas)
+# list(eq, depth, width, oc, alphas, transforms)
 
 #' Create method for "feature" class
 #'
-#' @param transform A numeric denoting the transform type
-#' @param features A list of features to include
+#' @param equation A nested list representing the equation of the new feature
+#' @param transforms A list containing all transforms available
 #' @param trans.priors A vector of prior inclusion penalties for the different transformations.
 #' @param alphas A numeric vector denoting the alphas to use
-#' @noRd
+#' 
+#' @return The created feature, of class feature
 create.feature <- function (equation, transforms, trans_priors, alphas=NULL) {
   # Given no alphas, assume no intercept and unit coefficients
   if (is.null(alphas)) alphas <- 1
@@ -32,7 +27,7 @@ create.feature <- function (equation, transforms, trans_priors, alphas=NULL) {
   return(new_feature)
 }
 
-#' Update alphas on a feature
+#' Not in use
 #'
 #' @param feature The feature to be updated
 #' @param alphas The alphas that will be used

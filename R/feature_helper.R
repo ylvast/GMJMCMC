@@ -1,10 +1,6 @@
-#' Helper function for drop and switching feature
-#'
-#' @param lst The equation that should be changed
-#' @param count What number element should be switched out, if it is more of the same
-#' @param target The element that should be switched out
-#' @param replacement What to switch in, not used if the transformation is elimination/drop
-#' @return The updated equation
+# Collection of helper functions needed when creating functions
+
+#' Helper function for drop and switching feature.
 drop_switch_feature <- function(lst, count, target, replacement = NULL) {
   if (!(is.list(lst[[1]])) && (lst[[1]] == target) && is.null(replacement)){
     count <- count - 1
