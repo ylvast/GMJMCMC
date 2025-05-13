@@ -1,11 +1,9 @@
 # Modified version of the FBMS branch
-
-# Installation and getting started
-To install and load the package, just run
+To install and load the package
 ```
 library(devtools)
 install_github("ylvast/GMJMCMC@FBMSY")
-library(GMJMCMC)
+library(FBMS)
 ```
 
 
